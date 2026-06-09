@@ -299,7 +299,7 @@ const IMAGES = [
 ];
 
 // ── Config ──────────────────────────────────────────────
-const RADIUS        = 155;    // sphere radius in px (half of original)
+const RADIUS        = 178;    // sphere radius in px
 const FOCAL         = 700;    // perspective focal length
 const AUTO_SPEED    = 0.03;   // degrees per frame (auto rotation)
 const DRAG_FACTOR   = 0.28;   // mouse drag sensitivity
@@ -329,6 +329,8 @@ let autoRotate  = true;
 let lbIndex     = 0;
 let currentR    = RADIUS;
 let targetR     = RADIUS;
+let zoomT       = 0;        // zoom progress 0=outside, 1=inside (700%)
+let targetZoomT = 0;
 let lastMouseX  = 0;
 let lastMouseY  = 0;
 let lastDX = 0, lastDY = 0;
@@ -452,6 +454,13 @@ window.addEventListener('mouseup', () => {
   setTimeout(() => { if (!isDragging && !isHovering) autoRotate = true; }, 800);
 });
 
+// ── Mouse wheel zoom ──────────────────────────────────────
+scene.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  targetZoomT -= e.deltaY * 0.001;
+  targetZoomT = Math.max(0, Math.min(1, targetZoomT));
+}, { passive: false });
+
 // ── Touch drag ───────────────────────────────────────────
 let lastTX = 0, lastTY = 0;
 
@@ -492,29 +501,41 @@ function tick() {
   velY *= ROT_SMOOTH;
   angleX = Math.max(-85, Math.min(85, angleX));
 
-  // Smooth radius (scale effect)
+  // Smooth drag radius and zoom
   currentR += (targetR - currentR) * R_SMOOTH;
+  zoomT    += (targetZoomT - zoomT) * 0.06;
 
-  // Project all points and collect with depth info
+  // Sphere radius expands to 700% at full zoom
+  const R_z = currentR * (1 + zoomT * 6);
+
+  // Project all points: blend perspective (t=0) → orthographic (t=1)
   const projected = basePoints.map((p, i) => {
     const r = rotatePoint(p, angleX, angleY);
-    // z: +1 = toward camera, -1 = away
-    const perspScale = FOCAL / (FOCAL - r.z * currentR);
-    const sx = r.x * currentR * perspScale;
-    const sy = r.y * currentR * perspScale;
-    return { i, sx, sy, z: r.z, perspScale };
+
+    // Perspective scale (camera fixed at FOCAL)
+    const dz = FOCAL - r.z * R_z;
+    const perspScale = dz > 0 ? FOCAL / dz : FOCAL / Math.abs(dz);
+
+    // Blend: at t=1 all images same size (ortho scale = 1.0)
+    const finalScale = perspScale * (1 - zoomT) + 1.0 * zoomT;
+
+    const sx = r.x * R_z * finalScale;
+    const sy = r.y * R_z * finalScale;
+    return { i, sx, sy, z: r.z, scale: finalScale };
   });
 
-  // Sort back-to-front so front cards render on top
+  // Sort back-to-front
   projected.sort((a, b) => a.z - b.z);
 
-  projected.forEach(({ i, sx, sy, z, perspScale }, order) => {
+  projected.forEach(({ i, sx, sy, z, scale }, order) => {
     const card = cards[i];
-    // Opacity: back = 0.3, front = 1.0
-    const opacity = 0.3 + 0.7 * ((z + 1) / 2);
+    card.style.display = '';
+    // Blend depth-based opacity → uniform as zoom increases
+    const depthOpacity = 0.3 + 0.7 * ((z + 1) / 2);
+    const opacity = depthOpacity * (1 - zoomT) + 0.85 * zoomT;
     card.style.left      = sx + 'px';
     card.style.top       = sy + 'px';
-    card.style.transform = `translate(-50%, -50%) scale(${perspScale})`;
+    card.style.transform = `translate(-50%, -50%) scale(${scale})`;
     card.style.opacity   = opacity.toFixed(3);
     card.style.zIndex    = order;
   });
