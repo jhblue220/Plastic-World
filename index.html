@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plastic World</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #ffffff;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Bitcount Prop Single', 'Space Mono', 'Courier New', monospace;
+  user-select: none;
+  cursor: default;
+}
+
+/* ── Header ── */
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 36px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+#site-title {
+  font-size: 11px;
+  letter-spacing: 0.45em;
+  color: #000;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+#site-sub {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: #aaa;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+#hint {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #ccc;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* ── Scene ── */
+#scene {
+  width: 100vw;
+  height: 100vh;
+  perspective: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#sphere {
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ── Image cards ── */
+.img-card {
+  position: absolute;
+  width: 130px;
+  height: 90px;
+  cursor: pointer;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.img-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.3s ease;
+}
+
+.img-card:hover::after {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.img-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(15%) brightness(0.97);
+  transition: filter 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.img-card:hover img {
+  filter: grayscale(0%) brightness(1);
+  transform: scale(1.04);
+}
+
+/* Placeholder when image fails */
+.img-card .placeholder {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.img-card .placeholder span {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #333;
+  text-transform: uppercase;
+}
+
+/* ── Lightbox ── */
+#lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.97);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+#lightbox.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#lightbox-img-wrap {
+  position: relative;
+  max-width: 68vw;
+  max-height: 68vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#lightbox-img {
+  max-width: 68vw;
+  max-height: 68vh;
+  object-fit: contain;
+  display: block;
+  transform: scale(0.96);
+  transition: transform 0.5s ease;
+}
+
+#lightbox.active #lightbox-img {
+  transform: scale(1);
+}
+
+#lightbox-meta {
+  margin-top: 36px;
+  text-align: center;
+}
+
+#lightbox-title {
+  font-size: 11px;
+  letter-spacing: 0.5em;
+  color: #000;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+#lightbox-series {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: #bbb;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+#lightbox-close {
+  position: fixed;
+  top: 40px;
+  right: 48px;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: #000;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+#lightbox-close:hover {
+  color: #888;
+}
+
+#lightbox-nav {
+  position: fixed;
+  bottom: 40px;
+  display: flex;
+  gap: 32px;
+}
+
+#lightbox-prev, #lightbox-next {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: #000;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+#lightbox-prev:hover, #lightbox-next:hover {
+  color: #888;
+}
+
+/* ── Drag cursor ── */
+body.dragging {
+  cursor: grabbing;
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div id="site-title">Plastic World</div>
+    <div id="site-sub">Photography Series</div>
+  </div>
+  <div id="hint">
+    Drag to rotate<br>
+    Click to view
+  </div>
+</div>
+
+<div id="scene">
+  <div id="sphere"></div>
+</div>
+
+<div id="lightbox">
+  <button id="lightbox-close">Close</button>
+  <div id="lightbox-img-wrap">
+    <img id="lightbox-img" src="" alt="">
+  </div>
+  <div id="lightbox-meta">
+    <div id="lightbox-title"></div>
+    <div id="lightbox-series"></div>
+  </div>
+  <div id="lightbox-nav">
+    <button id="lightbox-prev">← Prev</button>
+    <button id="lightbox-next">Next →</button>
+  </div>
+</div>
+
+<script>
+// ── Image data ──────────────────────────────────────────
+const IMAGES = [
+  { src: 'Image/Cave 01.jpg',     title: 'Cave 01',     series: 'Cave' },
+  { src: 'Image/Cave 02.jpg',     title: 'Cave 02',     series: 'Cave' },
+  { src: 'Image/Mountain 01.jpg', title: 'Mountain 01', series: 'Mountain' },
+  { src: 'Image/Mountain 02.jpg', title: 'Mountain 02', series: 'Mountain' },
+  { src: 'Image/Mountain 03.jpg', title: 'Mountain 03', series: 'Mountain' },
+  { src: 'Image/Sea 01.jpg',      title: 'Sea 01',      series: 'Sea' },
+  { src: 'Image/Sea 02.jpg',      title: 'Sea 02',      series: 'Sea' },
+  { src: 'Image/Sea 03.jpg',      title: 'Sea 03',      series: 'Sea' },
+  { src: 'Image/Sea 04.jpg',      title: 'Sea 04',      series: 'Sea' },
+  { src: 'Image/Seaweed 01.jpg',  title: 'Seaweed 01',  series: 'Seaweed' },
+  { src: 'Image/Seaweed 02.jpg',  title: 'Seaweed 02',  series: 'Seaweed' },
+  { src: 'Image/Wood 01.jpg',     title: 'Wood 01',     series: 'Wood' },
+  { src: 'Image/Wood 02.jpg',     title: 'Wood 02',     series: 'Wood' },
+  { src: 'Image/Wood 03.jpg',     title: 'Wood 03',     series: 'Wood' },
+  { src: 'Image/Wood 04.jpg',     title: 'Wood 04',     series: 'Wood' },
+];
+
+// ── Config ──────────────────────────────────────────────
+const RADIUS        = 310;   // sphere radius in px
+const AUTO_SPEED    = 0.12;  // degrees per frame (auto rotation)
+const DRAG_FACTOR   = 0.28;  // mouse drag sensitivity
+const MAX_SCALE_ADD = 0.18;  // max extra scale on fast drag
+const SCALE_SMOOTH  = 0.09;  // scale lerp factor
+const ROT_SMOOTH    = 0.88;  // momentum decay
+
+// ── DOM refs ────────────────────────────────────────────
+const sphere      = document.getElementById('sphere');
+const scene       = document.getElementById('scene');
+const lightbox    = document.getElementById('lightbox');
+const lbImg       = document.getElementById('lightbox-img');
+const lbTitle     = document.getElementById('lightbox-title');
+const lbSeries    = document.getElementById('lightbox-series');
+const lbClose     = document.getElementById('lightbox-close');
+const lbPrev      = document.getElementById('lightbox-prev');
+const lbNext      = document.getElementById('lightbox-next');
+
+// ── State ────────────────────────────────────────────────
+let rotX = -10, rotY = 0;
+let velX = 0,   velY = 0;
+let isDragging  = false;
+let isHovering  = false;
+let autoRotate  = true;
+let lbIndex     = 0;
+let sphereScale = 1;
+let targetScale = 1;
+let lastMouseX  = 0;
+let lastMouseY  = 0;
+let lastDX = 0, lastDY = 0;
+
+// ── Build sphere ─────────────────────────────────────────
+const PHI = Math.PI * (3 - Math.sqrt(5)); // golden angle
+const N   = IMAGES.length;
+
+IMAGES.forEach((imgData, i) => {
+  // Fibonacci sphere distribution
+  const y     = 1 - (i / (N - 1)) * 2;
+  const r     = Math.sqrt(Math.max(0, 1 - y * y));
+  const theta = PHI * i;
+  const x     = Math.cos(theta) * r;
+  const z     = Math.sin(theta) * r;
+
+  const lon = Math.atan2(x, z) * (180 / Math.PI);
+  const lat = Math.asin(Math.max(-1, Math.min(1, y))) * (180 / Math.PI);
+
+  const card = document.createElement('div');
+  card.className = 'img-card';
+  card.style.transform =
+    `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${RADIUS}px) translateX(-50%) translateY(-50%)`;
+
+  const img = document.createElement('img');
+  img.src = imgData.src;
+  img.alt = imgData.title;
+
+  // Fallback placeholder
+  img.onerror = () => {
+    img.style.display = 'none';
+    const ph = document.createElement('div');
+    ph.className = 'placeholder';
+    ph.innerHTML = `<span>${imgData.series}</span>`;
+    card.appendChild(ph);
+  };
+
+  card.appendChild(img);
+
+  // Hover: pause auto-rotation
+  card.addEventListener('mouseenter', () => { isHovering = true; });
+  card.addEventListener('mouseleave', () => { isHovering = false; });
+
+  // Click: open lightbox
+  card.addEventListener('click', (e) => {
+    if (Math.abs(lastDX) > 4 || Math.abs(lastDY) > 4) return; // skip if dragging
+    openLightbox(i);
+  });
+
+  sphere.appendChild(card);
+});
+
+// ── Lightbox ─────────────────────────────────────────────
+function openLightbox(index) {
+  lbIndex = ((index % N) + N) % N;
+  const d = IMAGES[lbIndex];
+  lbImg.src   = d.src;
+  lbImg.alt   = d.title;
+  lbTitle.textContent  = d.title;
+  lbSeries.textContent = d.series + ' Series — Plastic World';
+  lightbox.classList.add('active');
+  autoRotate = false;
+}
+
+function closeLightbox() {
+  lightbox.classList.remove('active');
+  autoRotate = true;
+}
+
+lbClose.addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+
+lbPrev.addEventListener('click', () => openLightbox(lbIndex - 1));
+lbNext.addEventListener('click', () => openLightbox(lbIndex + 1));
+
+document.addEventListener('keydown', (e) => {
+  if (!lightbox.classList.contains('active')) return;
+  if (e.key === 'Escape')      closeLightbox();
+  if (e.key === 'ArrowLeft')   openLightbox(lbIndex - 1);
+  if (e.key === 'ArrowRight')  openLightbox(lbIndex + 1);
+});
+
+// ── Mouse drag ───────────────────────────────────────────
+scene.addEventListener('mousedown', (e) => {
+  isDragging  = true;
+  lastMouseX  = e.clientX;
+  lastMouseY  = e.clientY;
+  lastDX = 0; lastDY = 0;
+  velX = 0; velY = 0;
+  document.body.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  lastDX = e.clientX - lastMouseX;
+  lastDY = e.clientY - lastMouseY;
+
+  velY += lastDX * DRAG_FACTOR;
+  velX -= lastDY * DRAG_FACTOR;
+
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
+
+  const speed = Math.sqrt(lastDX * lastDX + lastDY * lastDY);
+  targetScale = 1 + Math.min(speed * 0.004, MAX_SCALE_ADD);
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+  targetScale = 1;
+  document.body.classList.remove('dragging');
+  // brief decay before re-enabling auto
+  setTimeout(() => { if (!isDragging && !isHovering) autoRotate = true; }, 800);
+});
+
+// ── Touch drag ───────────────────────────────────────────
+let lastTX = 0, lastTY = 0;
+
+scene.addEventListener('touchstart', (e) => {
+  isDragging = true;
+  lastTX = e.touches[0].clientX;
+  lastTY = e.touches[0].clientY;
+  velX = 0; velY = 0;
+}, { passive: true });
+
+window.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  const dx = e.touches[0].clientX - lastTX;
+  const dy = e.touches[0].clientY - lastTY;
+  velY += dx * DRAG_FACTOR;
+  velX -= dy * DRAG_FACTOR;
+  lastTX = e.touches[0].clientX;
+  lastTY = e.touches[0].clientY;
+  const speed = Math.sqrt(dx * dx + dy * dy);
+  targetScale = 1 + Math.min(speed * 0.004, MAX_SCALE_ADD);
+}, { passive: true });
+
+window.addEventListener('touchend', () => {
+  isDragging = false;
+  targetScale = 1;
+  setTimeout(() => { if (!isDragging) autoRotate = true; }, 800);
+});
+
+// ── Render loop ───────────────────────────────────────────
+function tick() {
+  // Auto-rotate
+  if (autoRotate && !isDragging && !isHovering) {
+    velY -= AUTO_SPEED;
+  }
+
+  // Apply momentum & decay
+  rotY += velY;
+  rotX += velX;
+  velX *= ROT_SMOOTH;
+  velY *= ROT_SMOOTH;
+
+  // Clamp X rotation to prevent full vertical flip
+  rotX = Math.max(-85, Math.min(85, rotX));
+
+  // Scale lerp
+  sphereScale += (targetScale - sphereScale) * SCALE_SMOOTH;
+
+  // Apply transform
+  sphere.style.transform =
+    `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(${sphereScale},${sphereScale},${sphereScale})`;
+
+  requestAnimationFrame(tick);
+}
+
+tick();
+</script>
+</body>
+</html>
