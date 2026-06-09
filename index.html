@@ -380,6 +380,15 @@ const basePoints = IMAGES.map((_, i) => {
   return { x: Math.cos(theta) * r, y, z: Math.sin(theta) * r };
 });
 
+// Move pole images (i=0, i=N-1) off the rotation axis
+[0, N - 1].forEach(idx => {
+  const sign    = idx === 0 ? 1 : -1;
+  const newY    = sign * 0.45;                         // shift toward equator
+  const horizR  = Math.sqrt(1 - newY * newY);
+  const lon     = idx === 0 ? Math.PI * 0.25 : Math.PI * 1.1; // distinct longitudes
+  basePoints[idx] = { x: Math.cos(lon) * horizR, y: newY, z: Math.sin(lon) * horizR };
+});
+
 // ── Build card elements ──────────────────────────────────
 const cards = IMAGES.map((imgData, i) => {
   const card = document.createElement('div');
