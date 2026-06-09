@@ -369,25 +369,41 @@ let lastMouseX  = 0;
 let lastMouseY  = 0;
 let lastDX = 0, lastDY = 0;
 
-// ── Fibonacci sphere base positions (unit sphere) ────────
-const PHI = Math.PI * (3 - Math.sqrt(5));
-const N   = IMAGES.length;
+// ── Random sphere positions (seeded, minimum-distance enforced) ──
+const N = IMAGES.length;
 
-const basePoints = IMAGES.map((_, i) => {
-  const y = 1 - (i / (N - 1)) * 2;
-  const r = Math.sqrt(Math.max(0, 1 - y * y));
-  const theta = PHI * i;
-  return { x: Math.cos(theta) * r, y, z: Math.sin(theta) * r };
-});
+// Seeded LCG random — same layout on every load
+let _seed = 137;
+function rand() {
+  _seed = (_seed * 1664525 + 1013904223) & 0x7fffffff;
+  return _seed / 0x7fffffff;
+}
 
-// Move pole images (i=0, i=N-1) off the rotation axis
-[0, N - 1].forEach(idx => {
-  const sign    = idx === 0 ? 1 : -1;
-  const newY    = sign * 0.45;                         // shift toward equator
-  const horizR  = Math.sqrt(1 - newY * newY);
-  const lon     = idx === 0 ? Math.PI * 0.25 : Math.PI * 1.1; // distinct longitudes
-  basePoints[idx] = { x: Math.cos(lon) * horizR, y: newY, z: Math.sin(lon) * horizR };
-});
+function randomOnSphere() {
+  const u     = rand() * 2 - 1;
+  const theta = rand() * Math.PI * 2;
+  const r     = Math.sqrt(Math.max(0, 1 - u * u));
+  return { x: r * Math.cos(theta), y: u, z: r * Math.sin(theta) };
+}
+
+// Minimum dot-product threshold: cos(38°) ≈ 0.788 — no two images closer than ~38°
+const MIN_DOT = 0.788;
+
+// Also avoid poles: |y| must be < 0.92 (keeps images off the rotation axis)
+const MAX_POLE_Y = 0.92;
+
+const basePoints = [];
+let attempts = 0;
+
+while (basePoints.length < N && attempts < 50000) {
+  attempts++;
+  const p = randomOnSphere();
+  if (Math.abs(p.y) > MAX_POLE_Y) continue;          // skip near-pole positions
+  const tooClose = basePoints.some(q =>
+    p.x * q.x + p.y * q.y + p.z * q.z > MIN_DOT
+  );
+  if (!tooClose) basePoints.push(p);
+}
 
 // ── Build card elements ──────────────────────────────────
 const cards = IMAGES.map((imgData, i) => {
