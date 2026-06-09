@@ -570,22 +570,13 @@ function tick() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = '#000';
-  ctx.lineWidth   = 1;
+  ctx.lineWidth   = 0.2;
   ctx.lineCap     = 'round';
 
   const STEPS = 72;
 
-  // Rotation axis — solid, poles extended slightly beyond sphere
+  // Central meridian — solid, great circle in YZ plane
   ctx.setLineDash([]);
-  const axisTop = proj(0,  1.35, 0);
-  const axisBot = proj(0, -1.35, 0);
-  ctx.beginPath();
-  ctx.moveTo(axisTop.x, axisTop.y);
-  ctx.lineTo(axisBot.x, axisBot.y);
-  ctx.stroke();
-
-  // Central meridian — dashed, great circle in YZ plane
-  ctx.setLineDash([10, 10]);
   ctx.beginPath();
   for (let i = 0; i <= STEPS; i++) {
     const t = (i / STEPS) * Math.PI * 2;
@@ -594,7 +585,7 @@ function tick() {
   }
   ctx.stroke();
 
-  // Equator — dashed, great circle in XZ plane
+  // Equator — solid, great circle in XZ plane
   ctx.beginPath();
   for (let i = 0; i <= STEPS; i++) {
     const t = (i / STEPS) * Math.PI * 2;
@@ -603,7 +594,18 @@ function tick() {
   }
   ctx.stroke();
 
-  ctx.setLineDash([]);
+  // Rotation axis — dashed (parametric), poles extended slightly beyond sphere
+  ctx.beginPath();
+  for (let i = 0; i < STEPS; i++) {
+    if (i % 2 !== 0) continue;
+    const y0 = -1.35 + (i       / STEPS) * 2.7;
+    const y1 = -1.35 + ((i + 1) / STEPS) * 2.7;
+    const p0 = proj(0, y0, 0);
+    const p1 = proj(0, y1, 0);
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+  }
+  ctx.stroke();
 
   requestAnimationFrame(tick);
 }
