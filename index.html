@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plastic World</title>
+<title>Anthropocene</title>
 <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght@300&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after {
@@ -225,7 +225,7 @@ body.dragging {
 
 <div id="header">
   <div>
-    <div id="site-title">Plastic World</div>
+    <div id="site-title">Anthropocene</div>
   </div>
 </div>
 
@@ -251,7 +251,6 @@ const IMAGES = [
   { src: 'Image/Cave 02.jpg',     title: 'Cave 02',     series: 'Cave' },
   { src: 'Image/Mountain 01.jpg', title: 'Mountain 01', series: 'Mountain' },
   { src: 'Image/Mountain 02.jpg', title: 'Mountain 02', series: 'Mountain' },
-  { src: 'Image/Mountain 03.jpg', title: 'Mountain 03', series: 'Mountain' },
   { src: 'Image/Sea 01.jpg',      title: 'Sea 01',      series: 'Sea' },
   { src: 'Image/Sea 02.jpg',      title: 'Sea 02',      series: 'Sea' },
   { src: 'Image/Sea 03.jpg',      title: 'Sea 03',      series: 'Sea' },
@@ -261,7 +260,16 @@ const IMAGES = [
   { src: 'Image/Wood 01.jpg',     title: 'Wood 01',     series: 'Wood' },
   { src: 'Image/Wood 02.jpg',     title: 'Wood 02',     series: 'Wood' },
   { src: 'Image/Wood 03.jpg',     title: 'Wood 03',     series: 'Wood' },
-  { src: 'Image/Wood 04.jpg',     title: 'Wood 04',     series: 'Wood' },
+  { src: 'Image/Drain.jpg',         title: 'Drain',         series: 'Urban' },
+  { src: 'Image/Flowers.jpg',       title: 'Flowers',       series: 'Nature' },
+  { src: 'Image/Golf course.jpg',   title: 'Golf Course',   series: 'Urban' },
+  { src: 'Image/Nest.jpg',          title: 'Nest',          series: 'Nature' },
+  { src: 'Image/Nozzle.jpg',        title: 'Nozzle',        series: 'Urban' },
+  { src: 'Image/Printer.jpg',       title: 'Printer',       series: 'Urban' },
+  { src: 'Image/Truck.jpg',         title: 'Truck',         series: 'Urban' },
+  { src: 'Image/Urban Mountain.jpg',  title: 'Urban Mountain',   series: 'Urban' },
+  { src: 'Image/Urban Mountain_2.jpg',title: 'Urban Mountain II', series: 'Urban' },
+  { src: 'Image/chimney.jpg',       title: 'Chimney',       series: 'Urban' },
 ];
 
 // ── Config ──────────────────────────────────────────────
@@ -320,21 +328,30 @@ function randomOnSphere() {
   return { x: r * Math.cos(theta), y: u, z: r * Math.sin(theta) };
 }
 
-// Minimum dot-product threshold: cos(38°) ≈ 0.788 — no two images closer than ~38°
-const MIN_DOT = 0.788;
+// Minimum dot-product threshold — cos(28°) ≈ 0.883, suits 25 images
+const MIN_DOT = 0.883;
 
-// Also avoid poles: |y| must be < 0.92 (keeps images off the rotation axis)
+// Avoid poles: |y| must be < 0.92
 const MAX_POLE_Y = 0.92;
 
 const basePoints = [];
 let attempts = 0;
 
-while (basePoints.length < N && attempts < 50000) {
+while (basePoints.length < N && attempts < 80000) {
   attempts++;
   const p = randomOnSphere();
-  if (Math.abs(p.y) > MAX_POLE_Y) continue;          // skip near-pole positions
+  if (Math.abs(p.y) > MAX_POLE_Y) continue;
   const tooClose = basePoints.some(q =>
     p.x * q.x + p.y * q.y + p.z * q.z > MIN_DOT
+  );
+  if (!tooClose) basePoints.push(p);
+}
+
+// Fallback: fill remaining with looser constraint to avoid stuck-at-center cards
+while (basePoints.length < N) {
+  const p = randomOnSphere();
+  const tooClose = basePoints.some(q =>
+    p.x * q.x + p.y * q.y + p.z * q.z > 0.97
   );
   if (!tooClose) basePoints.push(p);
 }
