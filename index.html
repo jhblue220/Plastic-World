@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anthropocene</title>
 <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght@300&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" rel="stylesheet">
 <style>
 *, *::before, *::after {
   margin: 0;
@@ -189,6 +190,32 @@ body {
 }
 
 
+/* ── Lightbox description ── */
+#lightbox-desc {
+  margin-top: 28px;
+  max-width: 560px;
+  text-align: center;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 500;
+  display: none;
+}
+
+#lightbox-desc-ko {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #111;
+  white-space: pre-line;
+  margin: 0 0 14px 0;
+}
+
+#lightbox-desc-en {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #555;
+  white-space: pre-line;
+  margin: 0;
+}
+
 /* ── List label ── */
 #sphere {
   overflow: visible;
@@ -242,34 +269,81 @@ body.dragging {
   <div id="lightbox-meta">
     <div id="lightbox-title"></div>
   </div>
+  <div id="lightbox-desc">
+    <p id="lightbox-desc-ko"></p>
+    <p id="lightbox-desc-en"></p>
+  </div>
 </div>
 
 <script>
 // ── Image data ──────────────────────────────────────────
 const IMAGES = [
-  { src: 'Image/Cave 01.jpg',     title: 'Cave 01',     series: 'Cave' },
-  { src: 'Image/Cave 02.jpg',     title: 'Cave 02',     series: 'Cave' },
-  { src: 'Image/Mountain 01.jpg', title: 'Mountain 01', series: 'Mountain' },
-  { src: 'Image/Mountain 02.jpg', title: 'Mountain 02', series: 'Mountain' },
-  { src: 'Image/Sea 01.jpg',      title: 'Sea 01',      series: 'Sea' },
-  { src: 'Image/Sea 02.jpg',      title: 'Sea 02',      series: 'Sea' },
-  { src: 'Image/Sea 03.jpg',      title: 'Sea 03',      series: 'Sea' },
-  { src: 'Image/Sea 04.jpg',      title: 'Sea 04',      series: 'Sea' },
-  { src: 'Image/Seaweed 01.jpg',  title: 'Seaweed 01',  series: 'Seaweed' },
-  { src: 'Image/Seaweed 02.jpg',  title: 'Seaweed 02',  series: 'Seaweed' },
-  { src: 'Image/Wood 01.jpg',     title: 'Wood 01',     series: 'Wood' },
-  { src: 'Image/Wood 02.jpg',     title: 'Wood 02',     series: 'Wood' },
-  { src: 'Image/Wood 03.jpg',     title: 'Wood 03',     series: 'Wood' },
-  { src: 'Image/Drain.jpg',         title: 'Drain',         series: 'Urban' },
-  { src: 'Image/Flowers.jpg',       title: 'Flowers',       series: 'Nature' },
-  { src: 'Image/Golf course.jpg',   title: 'Golf Course',   series: 'Urban' },
-  { src: 'Image/Nest.jpg',          title: 'Nest',          series: 'Nature' },
-  { src: 'Image/Nozzle.jpg',        title: 'Nozzle',        series: 'Urban' },
-  { src: 'Image/Printer.jpg',       title: 'Printer',       series: 'Urban' },
-  { src: 'Image/Truck.jpg',         title: 'Truck',         series: 'Urban' },
-  { src: 'Image/Urban Mountain.jpg',  title: 'Urban Mountain',   series: 'Urban' },
-  { src: 'Image/Urban Mountain_2.jpg',title: 'Urban Mountain II', series: 'Urban' },
-  { src: 'Image/chimney.jpg',       title: 'Chimney',       series: 'Urban' },
+  { src: 'Image/Cave 01.jpg', title: 'Cave 01', series: 'Cave',
+    descKo: '인간이 들어가지 않는 동굴 속에도 미세 플라스틱은 존재한답니다 !',
+    descEn: 'Microplastics exist even in caves where humans have never set foot!' },
+  { src: 'Image/Cave 02.jpg', title: 'Cave 02', series: 'Cave',
+    descKo: '인간이 들어가지 않는 동굴 속에도 미세 플라스틱은 존재한답니다 !',
+    descEn: 'Microplastics exist even in caves where humans have never set foot!' },
+  { src: 'Image/Mountain 01.jpg', title: 'Mountain 01', series: 'Mountain',
+    descKo: '에베레스트나 알프스 같은 초고산 지대조차 눈과 얼음 1리터당 평균 수십 개에서 최고 130개에 달하는 미세 플라스틱 입자가 검출됩니다 :)',
+    descEn: 'Even alpine peaks like Everest and the Alps are hit so hard by air pollution that an average of dozens and up to 130 microplastic particles are detected per liter of snow and ice!' },
+  { src: 'Image/Mountain 02.jpg', title: 'Mountain 02', series: 'Mountain',
+    descKo: '에베레스트나 알프스 같은 초고산 지대조차 눈과 얼음 1리터당 평균 수십 개에서 최고 130개에 달하는 미세 플라스틱 입자가 검출됩니다 :)',
+    descEn: 'Even alpine peaks like Everest and the Alps are hit so hard by air pollution that an average of dozens and up to 130 microplastic particles are detected per liter of snow and ice!' },
+  { src: 'Image/Sea 01.jpg', title: 'Sea 01', series: 'Sea',
+    descKo: '전 세계 바닷물 1세제곱미터(m³)당 평균 8,000개가 넘는 미세 플라스틱이 떠다니고 있답니다 !',
+    descEn: 'On average, over 8,000 microplastic particles are drifting in every single cubic meter of ocean water worldwide!' },
+  { src: 'Image/Sea 02.jpg', title: 'Sea 02', series: 'Sea',
+    descKo: '전 세계 바닷물 1세제곱미터(m³)당 평균 8,000개가 넘는 미세 플라스틱이 떠다니고 있답니다 !',
+    descEn: 'On average, over 8,000 microplastic particles are drifting in every single cubic meter of ocean water worldwide!' },
+  { src: 'Image/Sea 03.jpg', title: 'Sea 03', series: 'Sea',
+    descKo: '전 세계 바닷물 1세제곱미터(m³)당 평균 8,000개가 넘는 미세 플라스틱이 떠다니고 있답니다 !',
+    descEn: 'On average, over 8,000 microplastic particles are drifting in every single cubic meter of ocean water worldwide!' },
+  { src: 'Image/Seaweed 01.jpg', title: 'Seaweed 01', series: 'Seaweed',
+    descKo: '해조류도 건조 무게 단 1그램당 평균 0.05개에서 0.3개 안팎의 미세 플라스틱을 온몸에 붙이거나 품은 채 바닷속에서 자라납니다.',
+    descEn: 'Even marine algae like seaweed grow by holding or attaching an average of 0.05 to 0.3 microplastic particles per just one gram of dry weight.' },
+  { src: 'Image/Seaweed 02.jpg', title: 'Seaweed 02', series: 'Seaweed',
+    descKo: '해조류도 건조 무게 단 1그램당 평균 0.05개에서 0.3개 안팎의 미세 플라스틱을 온몸에 붙이거나 품은 채 바닷속에서 자라납니다.',
+    descEn: 'Even marine algae like seaweed grow by holding or attaching an average of 0.05 to 0.3 microplastic particles per just one gram of dry weight.' },
+  { src: 'Image/Wood 01.jpg', title: 'Wood 01', series: 'Wood',
+    descKo: '나무는 뿌리 조직 1그램당 무려 1~2밀리그램(무게의 최대 0.2%)의\n플라스틱을 품은 채 자라납니다.',
+    descEn: 'Trees grow while holding as much as 1 to 2 milligrams of plastic\nper gram of root tissue, which is up to 0.2% of their weight.' },
+  { src: 'Image/Wood 02.jpg', title: 'Wood 02', series: 'Wood',
+    descKo: '나무는 뿌리 조직 1그램당 무려 1~2밀리그램(무게의 최대 0.2%)의\n플라스틱을 품은 채 자라납니다.',
+    descEn: 'Trees grow while holding as much as 1 to 2 milligrams of plastic\nper gram of root tissue, which is up to 0.2% of their weight.' },
+  { src: 'Image/Wood 03.jpg', title: 'Wood 03', series: 'Wood',
+    descKo: '나무는 뿌리 조직 1그램당 무려 1~2밀리그램(무게의 최대 0.2%)의\n플라스틱을 품은 채 자라납니다.',
+    descEn: 'Trees grow while holding as much as 1 to 2 milligrams of plastic\nper gram of root tissue, which is up to 0.2% of their weight.' },
+  { src: 'Image/Drain.jpg', title: 'Drain', series: 'Urban',
+    descKo: '빗물 1L당 약 100개 ~ 1,000개 이상의 미세 플라스틱 입자가 검출됩니다.',
+    descEn: 'Approximately 100 to over 1,000 microplastic particles are detected per liter of rainwater.' },
+  { src: 'Image/Flowers.jpg', title: 'Flowers', series: 'Nature',
+    descKo: '꽃 1그램당 수십만개의 나노 플라스틱 입자가 박혀있답니다!',
+    descEn: 'Dozens of thousands of nanoplastic particles are embedded in just one gram of a flower!' },
+  { src: 'Image/Golf course.jpg', title: 'Golf Course', series: 'Urban',
+    descKo: '우리 주변을 이루는 많은 요소는 플라스틱으로 이루어져 있어요 :) 그물마저도요 !',
+    descEn: 'Dozens to hundreds of microplastic fragments are mixed into every kilogram of forest soil!' },
+  { src: 'Image/Nest.jpg', title: 'Nest', series: 'Nature',
+    descKo: '대도시 새들의 둥지 중 89%에서 플라스틱이 검출되었습니다.',
+    descEn: 'Plastic was detected in 89% of bird nests in major cities.' },
+  { src: 'Image/Nozzle.jpg', title: 'Nozzle', series: 'Urban',
+    descKo: '기름 찌꺼기로 플라스틱을 만든다는 사실! 알고 계셨죠 ?',
+    descEn: 'You probably knew that plastics are made from oil leftovers, right? :)' },
+  { src: 'Image/Printer.jpg', title: 'Printer', series: 'Urban',
+    descKo: '특수용지와 합성지는 방수 및 내구성 향상을 위해 플라스틱 성분을 높은 비율(20%에서 최대 100%)로 함유하고 있습니다.',
+    descEn: 'To enhance water resistance and durability, synthetic and specialty papers contain a high percentage of plastic components, ranging from 20% up to 100%.' },
+  { src: 'Image/Truck.jpg', title: 'Truck', series: 'Urban',
+    descKo: '배기구는 말해 뭐해요',
+    descEn: 'Needless to say, the tailpipe is part of it. :)' },
+  { src: 'Image/Urban Mountain.jpg', title: 'Urban Mountain', series: 'Urban',
+    descKo: '숲의 토양 1kg당 수십 개에서 수백 개의 미세 플라스틱 파편이 섞여 있답니다 !',
+    descEn: 'Dozens to hundreds of microplastic fragments are mixed into every kilogram of forest soil!' },
+  { src: 'Image/Urban Mountain_2.jpg', title: 'Urban Mountain II', series: 'Urban',
+    descKo: '숲의 토양 1kg당 수십 개에서 수백 개의 미세 플라스틱 파편이 섞여 있답니다 !',
+    descEn: 'Dozens to hundreds of microplastic fragments are mixed into every kilogram of forest soil!' },
+  { src: 'Image/chimney.jpg', title: 'Chimney', series: 'Urban',
+    descKo: '공장에서는 하루에 1제곱미터당 약 1,250개 ~ 1,300개 안팎의 미세 플라스틱 입자가 날아간답니다 !',
+    descEn: 'Around 1,250 to 1,300 microplastic particles are released per square meter daily from factories!' },
 ];
 
 // ── Config ──────────────────────────────────────────────
@@ -293,6 +367,9 @@ const scene       = document.getElementById('scene');
 const lightbox    = document.getElementById('lightbox');
 const lbImg       = document.getElementById('lightbox-img');
 const lbTitle     = document.getElementById('lightbox-title');
+const lbDesc      = document.getElementById('lightbox-desc');
+const lbDescKo    = document.getElementById('lightbox-desc-ko');
+const lbDescEn    = document.getElementById('lightbox-desc-en');
 
 // ── State ────────────────────────────────────────────────
 let angleX = -10, angleY = 0;  // degrees
@@ -415,9 +492,16 @@ function rotatePoint(p, axDeg, ayDeg) {
 function openLightbox(index) {
   lbIndex = ((index % N) + N) % N;
   const d = IMAGES[lbIndex];
-  lbImg.src   = d.src;
-  lbImg.alt   = d.title;
-  lbTitle.textContent  = d.title;
+  lbImg.src  = d.src;
+  lbImg.alt  = d.title;
+  lbTitle.textContent = d.title;
+  if (d.descKo) {
+    lbDescKo.textContent = d.descKo;
+    lbDescEn.textContent = d.descEn || '';
+    lbDesc.style.display = 'block';
+  } else {
+    lbDesc.style.display = 'none';
+  }
   lightbox.classList.add('active');
   autoRotate = false;
 }
